@@ -1,0 +1,1 @@
+export { default as ManageDays } from './ManageDays.svelte';
