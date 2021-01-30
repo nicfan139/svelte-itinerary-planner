@@ -50,7 +50,8 @@
     for (let i = 0; i < duration; i++) {
       const dateArray = startDate.split('/');
       const oldDay = dateArray[1];
-      const newDay = String(Number(oldDay) + i);
+      const newDayInt = Number(oldDay) + i;
+      const newDay = newDayInt < 10 ? `0${newDayInt}` : String(newDayInt);
       dateArray.splice(1, 1, newDay);
       const newString = dateArray.join('/');
       newDaysList.push({
