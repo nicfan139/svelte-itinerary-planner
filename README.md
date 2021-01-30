@@ -1,6 +1,6 @@
 # Svelte Intinerary Planner
 
-A user-friendly tool to quickly generate an itinerary on the go.
+A handy, easy-to-use tool to quickly generate an itinerary on the go.
 
 ## Installation
 

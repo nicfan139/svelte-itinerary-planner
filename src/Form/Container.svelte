@@ -109,11 +109,15 @@
 
 <style lang="scss">
   .itinerary-form {
-    max-width: 1024px;
+    width: 1024px;
     margin: 16px 0;
     padding: 36px;
     border: 1px solid black;
     background-color: white;
+
+    @media screen and (max-width: 1200px) {
+      width: 900px;
+    }
   }
 
   .itinerary-form__progress-indicator {

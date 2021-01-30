@@ -41,9 +41,9 @@
           <span class="activity-display__subtitle-text">{activity.startTime} to {activity.endTime}</span>
         </div>
         {#if activity.notes}
-           <div class="activity-display__subtitle">
+           <div class="activity-display__subtitle notes">
              <Icon render={Information20} />
-             <span class="activity-display__subtitle-text">{activity.notes}</span>
+             <div class="activity-display__subtitle-text">{activity.notes}</div>
            </div>
         {/if}
 
@@ -110,6 +110,10 @@
           .activity-display__subtitle-text {
             margin-left: 8px;
           }
+        }
+
+        .notes {
+          align-items: flex-start;
         }
 
         .activity-display__pic {

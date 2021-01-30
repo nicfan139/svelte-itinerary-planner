@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { fly } from 'svelte/transition';
+  import moment from 'moment';
   import { jsPDF } from 'jspdf';
   import { basicDetails, fullItinerary } from 'stores';
   import { SectionHeader } from 'components';
@@ -23,39 +24,67 @@
   const onExportPdf = () => {
     const doc = new jsPDF();
     
-    // Page 1
+    /**
+     * Page 1
+    */
+    // Itinerary title
     doc.setFont("helvetica", "bold");
-    doc.text($basicDetails.name, 105, 80, null, null, "center");
-    doc.setFont("helvetica", "italic", "normal");
-    doc.text($basicDetails.description, 105, 90, null, null, "center");
-    doc.setFont("helvetica", "normal");
-    doc.text(`From ${$basicDetails.startDate} to ${$basicDetails.endDate}`, 105, 100, null, null, "center");
+    doc.setFontSize(32);
+    doc.text($basicDetails.name, 105, 120, null, null, "center");
 
-    // Page 2 onwards
+    // Itinerary description
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(20);
+    doc.text($basicDetails.description, 105, 135, null, null, "center");
+
+    // Itinerary timeframe
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(20);
+    doc.text(`From ${$basicDetails.startDate} to ${$basicDetails.endDate} (${$basicDetails.duration} days)`, 105, 150, null, null, "center");
+
+    /**
+     * Page 2 onwards
+    */
     $fullItinerary.forEach(day => {
       doc.addPage("a4", "p");
 
+      // Day page indicator
       doc.setFont("helvetica", "bold");
-      doc.text(`Day ${day.order} - ${day.date}`, 105, 20, null, null, "center");
+      doc.setFontSize(32);
+      doc.text(`Day ${day.order} - ${moment(day.date).format('dddd Do MMMM')}`, 105, 140, null, null, "center");
 
-      doc.setFont("helvetica", "normal");
-      let yOffset = 30;
-      day.activities.forEach((activity) => {
-        yOffset += 10;
-        doc.text(`-> ${activity.name}`, 20, yOffset, null, null, "left");
-        yOffset += 10;
-        doc.text(activity.location, 30, yOffset, null, null, "left");
-        yOffset += 10;
-        doc.text(`${activity.startTime} - ${activity.endTime}`, 30, yOffset, null, null, "left");
-        yOffset += 10;
-        doc.setFont("helvetica", "italic", "normal");
-        doc.text(activity.notes, 30, yOffset, null, null, "left");
-        yOffset += 10;
-        // if (activity.thumbnail) {
-        //   doc.addImage(activity.thumbnail, 'PNG', 30, yOffset, 300, 175);
-        // };
+      day.activities.forEach((activity, index) => {
+        doc.addPage("a4", "p");
+
+        // Day number + activity number
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(16);
+        doc.text(`Day ${day.order} - Activity #${index + 1}`, 15, 15, null, null, "left");
+
+        // Activity name
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(24);
+        doc.text(activity.name, 20, 40, null, null, "left");
+
+        // Activity location + time
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(16);
+        doc.text(`Location: ${activity.location}`, 20, 50, null, null, "left");
+        doc.text(`${activity.startTime} - ${activity.endTime}`, 20, 60, null, null, "left");
+
+        // Activity image
+        if (activity.thumbnail) {
+          doc.addImage(activity.thumbnail, 'PNG', 20, 70, 160, 100);
+        };
+
+        // Activity notes
+        const yOffset = activity.thumbnail ? 185 : 70; 
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(14);
+        doc.text(activity.notes, 20, yOffset, null, null, "left");
       });
     });
+
     doc.save("itinerary.pdf");
   };
 </script>
@@ -93,7 +122,7 @@
     </div>
   
     <!-- Export CSV -->
-    <!-- <div class="action-button__container">
+    <div class="action-button__container">
       <Button
         kind="primary"
         icon={DocumentExport24}
@@ -101,7 +130,7 @@
       >
         Export PDF
       </Button>
-    </div> -->
+    </div>
   </div>
 </div>
 
@@ -116,7 +145,7 @@
   on:close={() => showResetConfirmation = false}
   on:submit={() => dispatch('reset')}
 >
-  <p>This will delete <strong>all the changes</strong> made to your itinerary.</p>
+  <p>This will delete <strong>everything</strong> in your itinerary.</p>
 </Modal>
 
 <!-- Save confirmation -->

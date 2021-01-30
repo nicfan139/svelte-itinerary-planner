@@ -35,6 +35,8 @@
     if (startDate && endDate) {
       duration = moment(endDate).diff(moment(startDate), 'days') + 1;
 
+      // If there is an existing itinerary in progress, prompt user as what to do with the current changes
+
       // const newDaysList = $fullItinerary.length > 0 && $fullItinerary.some(day => day.activities.length > 0) ? [...$fullItinerary] : [];
       const newDaysList = [];
       for (let i = 0; i < duration; i++) {
@@ -43,17 +45,6 @@
         const newDay = String(Number(oldDay) + i);
         dateArray.splice(1, 1, newDay);
         const newString = dateArray.join('/');
-
-        // if (!newDaysList.find(day => day.date === newString)) {
-        //   newDaysList.push({
-        //     order: i + 1,
-        //     selected: false,
-        //     date: newString,
-        //     activities: [],
-        //   });
-        // }
-        
-        // TODO: Create condition when removing days from duration
 
         newDaysList.push({
           order: i + 1,
