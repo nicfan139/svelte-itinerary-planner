@@ -1,15 +1,17 @@
 <script>
   import { fade, fly } from 'svelte/transition';
+  import moment from 'moment';
   import { fullItinerary, notification, notificationTypes } from 'stores';
   import { ActivityDisplay, ActivityForm } from './Activity';
-  import { Icon, Button } from 'carbon-components-svelte';
-  import LocationStar32 from "carbon-icons-svelte/lib/LocationStar32";
+  import { Button, Modal } from 'carbon-components-svelte';
+  import Reset24 from "carbon-icons-svelte/lib/Reset24";
   import Add16 from "carbon-icons-svelte/lib/Add16";
 
   export let dayInfo;
   let activities = [];
   let showActivityForm = false;
   let activityToEdit = null;
+  let showClearConfirmation = false;
 
   const closeActivityForm = () => {
     showActivityForm = false;
@@ -80,6 +82,16 @@
     showActivityForm = false;
   };
 
+  const clearAllActivities = () => {
+    showClearConfirmation = false;
+    activities = [];
+    const updatedItinerary = $fullItinerary.filter(day => day.order !== dayInfo.order)
+    const updatedDay = $fullItinerary.find(day => day.order === dayInfo.order);
+    updatedDay.activities = [];
+    updatedItinerary.push(updatedDay);
+    fullItinerary.update(() => updatedItinerary.sort((a, b) => { return a.order - b.order }));
+  };
+
   $: {
     let selectedDay = $fullItinerary.find(day => day.order === dayInfo.order);
     if (selectedDay) {
@@ -89,12 +101,28 @@
 </script>
 
 <div class="day-plan" in:fly="{{ x: -10, duration: 500 }}">
-  <h3 class="day-plan__title">
-    <span class="day-plan__title-text">
-      Plan for Day {dayInfo.order}
-    </span>
-    <Icon render={LocationStar32} />
-  </h3>
+  <div class="day-plan__header">
+    <div class="day-plan__header-text">
+      <h3 class="title">
+        Plan for Day {dayInfo.order}
+      </h3>
+      <span class="long-date">
+        {moment(dayInfo.date).format('dddd Do MMMM')}
+      </span>
+    </div>
+
+    {#if activities.length > 0}
+      <div transition:fade>
+        <Button
+          kind="secondary"
+          icon={Reset24}
+          on:click={() => showClearConfirmation = true}
+        >
+          Clear all activities
+        </Button>
+      </div>
+    {/if}
+  </div>
   {#if activities.length > 0}
     {#each activities as activity, i}
       <ActivityDisplay index={i} activity={activity} on:edit={editActivity} on:delete={deleteActivity} />
@@ -120,6 +148,20 @@
   {/if}
 </div>
 
+<!-- Clear all activities confirmation -->
+<Modal
+  danger
+  bind:open={showClearConfirmation}
+  modalHeading="Are you sure you want to clear?"
+  primaryButtonText="Clear"
+  secondaryButtonText="Cancel"
+  on:click:button--secondary={() => showClearConfirmation = false}
+  on:close={() => showClearConfirmation = false}
+  on:submit={clearAllActivities}
+>
+  <p>This will clear <strong>all</strong> activities for Day {dayInfo.order}.</p>
+</Modal>
+
 <style lang="scss">
   .day-plan {
     width: 100%;
@@ -127,15 +169,28 @@
     padding: 16px 36px;
     border-top: 1px solid lightgrey;
 
-    .day-plan__title {
+    .day-plan__header {
       display: flex;
+      justify-content: space-between;
       align-items: center;
       padding-bottom: 12px;
       border-bottom: 1px solid lightgrey;
       font-size: 32px;
 
-      .day-plan__title-text {
-        margin-right: 8px;
+      .day-plan__header-text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+
+        .title {
+          margin-bottom: 8px;
+          font-size: 32px;
+        }
+
+        .long-date {
+          font-size: 16px;
+          font-style: italic;
+        }
       }
     }
 

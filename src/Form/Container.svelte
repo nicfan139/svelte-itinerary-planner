@@ -74,7 +74,7 @@
   <!-- Step 2 - Manage itinierary -->
   {#if $fullItinerary.length > 0}
     <hr/>
-    <ManageDays on:complete={onItineraryComplete} />
+    <ManageDays on:save={onFormSave} on:complete={onItineraryComplete} />
   {/if}
 
   <!-- Step 3 - Export data/Online viewer gallery -->
