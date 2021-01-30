@@ -146,6 +146,7 @@
   on:submit={() => dispatch('reset')}
 >
   <p>This will delete <strong>everything</strong> in your itinerary.</p>
+  <p>Saved changes will also be cleared.</p>
 </Modal>
 
 <!-- Save confirmation -->

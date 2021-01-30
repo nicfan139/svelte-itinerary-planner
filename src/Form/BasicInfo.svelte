@@ -3,7 +3,7 @@
   import moment from 'moment';
   import { basicDetails, fullItinerary } from 'stores';
   import { SectionHeader } from 'components';
-  import { TextInput, TextArea, DatePicker, DatePickerInput } from 'carbon-components-svelte';
+  import { TextInput, TextArea, DatePicker, DatePickerInput, Modal } from 'carbon-components-svelte';
   import InformationSquare32 from "carbon-icons-svelte/lib/InformationSquare32";
 
   export let basicDetailsToEdit;
@@ -12,6 +12,7 @@
   let startDate = '';
   let endDate = '';
   let duration;
+  let showDateChangeConfirmation = false;
 
   onMount(() => {
     if (basicDetailsToEdit) {
@@ -27,35 +28,40 @@
     const { dateStr } = detail;
     if (type === 'start') {
       startDate = dateStr;
-    }
+    };
     if (type === 'end') {
       endDate = dateStr;
-    }
-
+    };
     if (startDate && endDate) {
       duration = moment(endDate).diff(moment(startDate), 'days') + 1;
 
-      // If there is an existing itinerary in progress, prompt user as what to do with the current changes
-
-      // const newDaysList = $fullItinerary.length > 0 && $fullItinerary.some(day => day.activities.length > 0) ? [...$fullItinerary] : [];
-      const newDaysList = [];
-      for (let i = 0; i < duration; i++) {
-        const dateArray = startDate.split('/');
-        const oldDay = dateArray[1];
-        const newDay = String(Number(oldDay) + i);
-        dateArray.splice(1, 1, newDay);
-        const newString = dateArray.join('/');
-
-        newDaysList.push({
-          order: i + 1,
-          selected: false,
-          date: newString,
-          activities: [],
-        });
+      if ($fullItinerary.some(day => day.activities.length > 0)) {
+        return showDateChangeConfirmation = true;
       };
 
-      fullItinerary.update(() => newDaysList);
-    }
+      return generateDaysList();
+    };
+  };
+
+  const generateDaysList = () => {
+    showDateChangeConfirmation = false;
+    const newDaysList = [];
+
+    for (let i = 0; i < duration; i++) {
+      const dateArray = startDate.split('/');
+      const oldDay = dateArray[1];
+      const newDay = String(Number(oldDay) + i);
+      dateArray.splice(1, 1, newDay);
+      const newString = dateArray.join('/');
+      newDaysList.push({
+        order: i + 1,
+        selected: false,
+        date: newString,
+        activities: [],
+      });
+    };
+
+    fullItinerary.update(() => newDaysList);
   };
 
   $: {
@@ -94,13 +100,27 @@
     
       <!-- End date -->
       {#if startDate}
-        <DatePicker light datePickerType="single" minDate={startDate} bind:value={endDate} on:change={e => onDateChange(e.detail, 'end')}>
+        <DatePicker light datePickerType="single" minDate={moment().format('MM/DD/YYYY')} bind:value={endDate} on:change={e => onDateChange(e.detail, 'end')}>
           <DatePickerInput labelText="Select end date" />
         </DatePicker>
       {/if}
     </div>
   </div>
 </div>
+
+<!-- Date change confirmation -->
+<Modal
+  danger
+  bind:open={showDateChangeConfirmation}
+  modalHeading="Confirm date changes?"
+  primaryButtonText="Change dates"
+  secondaryButtonText="Cancel"
+  on:click:button--secondary={() => showDateChangeConfirmation = false}
+  on:close={() => showDateChangeConfirmation = false}
+  on:submit={generateDaysList}
+>
+  <p>Everything that is currently in your itinerary will be cleared.</p>
+</Modal>
 
 <style lang="scss">
   .itinerary-form__basic-info {

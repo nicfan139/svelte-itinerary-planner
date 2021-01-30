@@ -157,18 +157,20 @@
 </div>
 
 <!-- Remove last day confirmation -->
-<Modal
-  danger
-  bind:open={showRemoveLastDayConfirmation}
-  modalHeading="Confirm remove?"
-  primaryButtonText="Remove"
-  secondaryButtonText="Cancel"
-  on:click:button--secondary={() => showRemoveLastDayConfirmation = false}
-  on:close={() => showRemoveLastDayConfirmation = false}
-  on:submit={onRemoveLastDay}
->
-  <p>This will remove Day {$fullItinerary[$fullItinerary.length - 1].order} ({$fullItinerary[$fullItinerary.length - 1].date}) from your itinerary.</p>
-</Modal>
+{#if $fullItinerary.length > 0}  
+  <Modal
+    danger
+    bind:open={showRemoveLastDayConfirmation}
+    modalHeading="Confirm remove?"
+    primaryButtonText="Remove"
+    secondaryButtonText="Cancel"
+    on:click:button--secondary={() => showRemoveLastDayConfirmation = false}
+    on:close={() => showRemoveLastDayConfirmation = false}
+    on:submit={onRemoveLastDay}
+  >
+    <p>This will remove Day {$fullItinerary[$fullItinerary.length - 1].order} ({$fullItinerary[$fullItinerary.length - 1].date}) from your itinerary.</p>
+  </Modal>
+{/if}
 
 <style lang="scss">
   .itinerary-form__days-management {
