@@ -10,8 +10,12 @@
 
 <main bind:clientWidth={screenWidth}>
 	{#if screenWidth >= 900}
-		<h1 class="title">Itinerary planner by @nicfan139</h1>
-		<p class="subtitle">Use this generator to create an itinerary on the fly!</p>
+		<h1 class="title">
+			Itinerary planner by <a href="https://github.com/nicfan139" target="_blank" rel="noopener noreferrer">@nicfan139</a>
+		</h1>
+		<p class="subtitle">
+			Use this generator to create an itinerary on the fly!
+		</p>
 
 		<FormContainer />
 

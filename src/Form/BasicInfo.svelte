@@ -1,10 +1,11 @@
 <script>
   import { onMount } from 'svelte';
   import moment from 'moment';
-  import { basicDetails, fullItinerary } from 'stores';
+  import { basicDetails, fullItinerary, notification, notificationTypes } from 'stores';
   import { SectionHeader } from 'components';
-  import { TextInput, TextArea, DatePicker, DatePickerInput, Modal } from 'carbon-components-svelte';
+  import { TextInput, TextArea, DatePicker, DatePickerInput, Button, Modal } from 'carbon-components-svelte';
   import InformationSquare32 from "carbon-icons-svelte/lib/InformationSquare32";
+  import CalendarHeatMap24 from "carbon-icons-svelte/lib/CalendarHeatMap24";
 
   export let basicDetailsToEdit;
   let name = '';
@@ -34,9 +35,16 @@
     };
     if (startDate && endDate) {
       duration = moment(endDate).diff(moment(startDate), 'days') + 1;
-
-      if ($fullItinerary.some(day => day.activities.length > 0)) {
-        return showDateChangeConfirmation = true;
+      
+      if (duration < 1) {
+        duration = '';
+        return notification.update(() => {
+          return {
+            type: notificationTypes.ERROR,
+            title: 'End date error',
+            caption: "The selected end date cannot be before the start date.",
+          }
+        });
       };
 
       return generateDaysList();
@@ -45,24 +53,51 @@
 
   const generateDaysList = () => {
     showDateChangeConfirmation = false;
-    const newDaysList = [];
 
-    for (let i = 0; i < duration; i++) {
-      const dateArray = startDate.split('/');
-      const oldDay = dateArray[1];
-      const newDayInt = Number(oldDay) + i;
-      const newDay = newDayInt < 10 ? `0${newDayInt}` : String(newDayInt);
-      dateArray.splice(1, 1, newDay);
-      const newString = dateArray.join('/');
+    const startDateMoment = moment(startDate).startOf('day');
+    const endDateMoment = moment(endDate).startOf('day');
+    const newDaysList = [
+      {
+        order: 1,
+        selected: true,
+        date: startDate,
+        activities: [],
+      },
+    ];
+    
+    let i = 1;
+    while(startDateMoment.add(1, 'days').diff(endDateMoment) <= 0) {
       newDaysList.push({
-        order: i + 1,
+        order: i += 1,
         selected: false,
-        date: newString,
+        date: startDateMoment.format('MM/DD/YYYY'),
         activities: [],
       });
     };
-
+    
     fullItinerary.update(() => newDaysList);
+  };
+
+  const onChangeDatesButtonClick = () => {
+    if (duration > 0) {
+      showDateChangeConfirmation = true;
+    } else {
+      changeDates();
+    }
+  };
+
+  const changeDates = () => {
+    showDateChangeConfirmation = false;
+    startDate = '';
+    endDate = '';
+    basicDetails.update(() => {
+      return {
+        ...$basicDetails,
+        startDate: '',
+        endDate: '',
+      }
+    });
+    fullItinerary.reset();
   };
 
   $: {
@@ -94,13 +129,21 @@
     </div>
   
     <div class="col">
-      <!-- Start date -->
-      <DatePicker light datePickerType="single" minDate={moment().format('MM/DD/YYYY')} bind:value={startDate} on:change={e => onDateChange(e.detail, 'start')}>
-        <DatePickerInput labelText="Select start date" />
-      </DatePicker>
-    
-      <!-- End date -->
-      {#if startDate}
+      {#if startDate && endDate}
+        <Button
+          kind="secondary"
+          icon={CalendarHeatMap24}
+          on:click={onChangeDatesButtonClick}
+        >
+          Change dates
+        </Button>
+      {:else}        
+        <!-- Start date -->
+        <DatePicker light datePickerType="single" minDate={moment().format('MM/DD/YYYY')} bind:value={startDate} on:change={e => onDateChange(e.detail, 'start')}>
+          <DatePickerInput labelText="Select start date" />
+        </DatePicker>
+      
+        <!-- End date -->
         <DatePicker light datePickerType="single" minDate={moment().format('MM/DD/YYYY')} bind:value={endDate} on:change={e => onDateChange(e.detail, 'end')}>
           <DatePickerInput labelText="Select end date" />
         </DatePicker>
@@ -113,12 +156,12 @@
 <Modal
   danger
   bind:open={showDateChangeConfirmation}
-  modalHeading="Confirm date changes?"
-  primaryButtonText="Change dates"
+  modalHeading="Confirm change dates?"
+  primaryButtonText="Proceed"
   secondaryButtonText="Cancel"
   on:click:button--secondary={() => showDateChangeConfirmation = false}
   on:close={() => showDateChangeConfirmation = false}
-  on:submit={generateDaysList}
+  on:submit={changeDates}
 >
   <p>Everything that is currently in your itinerary will be cleared.</p>
 </Modal>

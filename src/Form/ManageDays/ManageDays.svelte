@@ -2,7 +2,7 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { fly, fade } from 'svelte/transition';
   import moment from 'moment';
-  import { fullItinerary } from 'stores';
+  import { fullItinerary, basicDetails } from 'stores';
   import { SectionHeader } from 'components';
   import { Icon, Button, Modal } from 'carbon-components-svelte';
   import AddAlt32 from "carbon-icons-svelte/lib/AddAlt32";
@@ -63,7 +63,16 @@
     showRemoveLastDayConfirmation = false;
     const newList = [...$fullItinerary];
     newList.pop();
+    const firstDay = newList[0];
+    const lastDay = newList[newList.length - 1];
     fullItinerary.update(() => newList);
+    basicDetails.update(() => {
+      return {
+        ...$basicDetails,
+        endDate: lastDay.date,
+        duration: moment(lastDay.date).diff(moment(firstDay.date), 'days') + 1,
+      }
+    });
   };
 
   const completeItinerary = () => {
