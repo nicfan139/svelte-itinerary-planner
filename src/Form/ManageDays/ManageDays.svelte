@@ -57,20 +57,26 @@
     selectedDay = newDay;
     newList.push(newDay);
     fullItinerary.update(() => newList);
+    basicDetails.update(() => {
+      return {
+        ...$basicDetails,
+        endDate: newDay.date,
+        duration: newList.length,
+      }
+    });
   };
 
   const onRemoveLastDay = () => {
     showRemoveLastDayConfirmation = false;
     const newList = [...$fullItinerary];
     newList.pop();
-    const firstDay = newList[0];
     const lastDay = newList[newList.length - 1];
     fullItinerary.update(() => newList);
     basicDetails.update(() => {
       return {
         ...$basicDetails,
         endDate: lastDay.date,
-        duration: moment(lastDay.date).diff(moment(firstDay.date), 'days') + 1,
+        duration: newList.length,
       }
     });
   };
